@@ -40,11 +40,12 @@ def validar_usuario(usuario, senha):
     """, (usuario, senha_hashed))
     usuario_logado = cursor.fetchone()
     if usuario_logado:
-        print(f"Usuário {usuario_logado[1]} logado")
+        print(f"Usuário {usuario_logado} logado.")
+        return usuario_logado
     else:
-        print("Usuário e senha incorretos!")
+        print(f'Usuário e senha inválidos.')
     conexao.close()
-    return usuario_logado
+    
 
 #Inserção de dados de usuários
 def inserir_usuario(usuario, senha):
