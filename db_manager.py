@@ -1,6 +1,7 @@
 import sqlite3
 import os
 import hashlib
+from datetime import datetime
 
 #Nome do banco de dados
 banco = "banco.db"
@@ -13,7 +14,7 @@ def criar_banco():
         conexao = sqlite3.connect(banco)
         cursor = conexao.cursor()
 
-        #Criação da tabela de usuários
+        #Criação da tabela de 'usuarios' no banco de dados
         cursor.execute("""
         CREATE TABLE usuarios(
             id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
@@ -21,7 +22,32 @@ def criar_banco():
             senha TEXT NOT NULL
         );
         """)
+
+        # Criar a tabela 'atividades' no banco de dados
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS atividades (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user TEXT NOT NULL,
+                status TEXT NOT NULL,
+                date DATE NOT NULL,
+                time TIME NOT NULL,
+                value REAL,
+                description TEXT NOT NULL
+            )
+        ''')
+
+        # Criar a tabela 'areas' no banco de dados
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS areas (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                area TEXT NOT NULL,
+                description TEXT NOT NULL,
+                criada_em TIMESTAMP
+            )
+        ''')
+        conexao.commit()
         conexao.close()
+
         print(f"Banco de dados {banco} criado com sucesso.")
 
 #Função de criptografia
@@ -40,7 +66,7 @@ def validar_usuario(usuario, senha):
     """, (usuario, senha_hashed))
     usuario_logado = cursor.fetchone()
     if usuario_logado:
-        print(f"Usuário {usuario_logado} logado.")
+        print(f"Usuário válido {usuario_logado} logado.")
         return usuario_logado
     else:
         print(f'Usuário e senha inválidos.')
@@ -92,3 +118,39 @@ def excluir_usuario(id):
     conexao.commit()
     print(f'Usuario ID {id} excluído.')
     conexao.close()
+
+#adicionar nova atividade no banco
+def adicionar_nova_atividade(atividade):
+    conexao = sqlite3.connect(banco)
+    cursor = conexao.cursor()
+    # Converter a data e a hora para strings no formato DD-MM-YYYY e HH:MM:SS
+    date_str = atividade.date.strftime("%d/%m/%Y")
+    time_str = atividade.time.strftime("%H:%M:%S")
+    # executa o adição
+    cursor.execute("INSERT INTO atividades (user, status, date, time, value, description) VALUES (?, ?, ?, ?, ?, ?)",
+              (atividade.user, atividade.status, date_str, time_str, atividade.value, atividade.description))
+    conexao.commit()
+    conexao.close()
+
+def adicionar_area_atividade(area):
+    #obter data e hora atual
+    data_atual = datetime.now()
+    #formatar a data atual para 'DD-MM-YYYY HH:MM:SS'
+    data_criacao = data_atual.strftime('%d-%m-%Y %H:%M:%S')
+    conexao = sqlite3.connect(banco)
+    cursor = conexao.cursor()
+    cursor.execute("INSERT INTO areas (area, description, criada_em) VALUES (?, ?, ?)",
+              (area.area, area.description, data_criacao))
+    conexao.commit()
+    conexao.close()
+
+def consultar_areas():
+    conexao = sqlite3.connect(banco)
+    cursor = conexao.cursor()
+    cursor.execute("""
+    SELECT * FROM areas
+    """)
+    areas = cursor.fetchall()
+    conexao.commit()
+    conexao.close()
+    return areas
