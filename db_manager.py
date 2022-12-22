@@ -132,6 +132,17 @@ def adicionar_nova_atividade(atividade):
     conexao.commit()
     conexao.close()
 
+def consultar_atividades():
+    conexao = sqlite3.connect(banco)
+    cursor = conexao.cursor()
+    cursor.execute("""
+    SELECT * FROM atividades
+    """)
+    atividades = cursor.fetchall()
+    conexao.commit()
+    conexao.close()
+    return atividades
+
 def adicionar_area_atividade(area):
     #obter data e hora atual
     data_atual = datetime.now()
@@ -154,3 +165,4 @@ def consultar_areas():
     conexao.commit()
     conexao.close()
     return areas
+

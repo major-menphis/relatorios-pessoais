@@ -119,6 +119,22 @@ class MainWindow(QtWidgets.QMainWindow):
         # Alterar o texto da tela principal para o título da opção selecionada no menu lateral
         self.label.setText(item.text())
 
+        # atualizar telas
+        self.atualiza_todas_atividades()
+
+    def atualiza_todas_atividades(self):
+        tela = self.todas_as_atividades_screen
+        # consultar todas as atividades e adicionar ao modelo
+        self.all_activities = db_manager.consultar_atividades()
+        self.modelo = QtGui.QStandardItemModel()
+        for atividade in self.all_activities:
+            coluna_atividade = QtGui.QStandardItem(atividade[1])
+            self.modelo.appendRow([
+                coluna_atividade
+            ])
+            tela.screen_all_activities.reset()
+        tela.screen_all_activities.setModel(self.modelo)
+
 # CRIAR CLASSES DE JANELAS
 class CadastroAreaScreen(QtWidgets.QWidget):
     def __init__(self):
@@ -231,10 +247,17 @@ class AtividadesConcluidasScreen(QtWidgets.QWidget):
 class TodasAsAtividadesScreen(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
+        # criar o layout principal
         self.layout = QtWidgets.QVBoxLayout()
         self.setLayout(self.layout)
-        self.label = QtWidgets.QLabel("Tela de todas as atividades")
-        self.layout.addWidget(self.label)
+
+        # criar uma label de titulo
+        self.label_title = QtWidgets.QLabel("Tela de todas as atividades")
+        self.layout.addWidget(self.label_title)
+
+        # cria uma janela de resultados
+        self.screen_all_activities = QtWidgets.QListView()
+        self.layout.addWidget(self.screen_all_activities)
 
 class EmitirRelatoriosScreen(QtWidgets.QWidget):
     def __init__(self):
@@ -252,7 +275,7 @@ class GraficosDeAtividadesScreen(QtWidgets.QWidget):
         self.label = QtWidgets.QLabel("Tela de gráficos de atividades")
         self.layout.addWidget(self.label)
 
-#criar classe 'Atividade'
+# criar classe 'Atividade'
 class Atividade:
     def __init__(self, user, status, date, time, value, description):
         self.user = user
