@@ -127,13 +127,25 @@ class MainWindow(QtWidgets.QMainWindow):
         # consultar todas as atividades e adicionar ao modelo
         self.all_activities = db_manager.consultar_atividades()
         self.modelo = QtGui.QStandardItemModel()
+        # nomear colunas
+        self.modelo.setHorizontalHeaderLabels(["Nome", "Status", "Data Agendada", "Hora agendada", "Valor"])
         for atividade in self.all_activities:
             coluna_atividade = QtGui.QStandardItem(atividade[1])
+            coluna_status = QtGui.QStandardItem(atividade[2])
+            coluna_data_agendada = QtGui.QStandardItem(atividade[3])
+            coluna_hora_agendada = QtGui.QStandardItem(atividade[4])
+            coluna_valor = QtGui.QStandardItem(f"R$ {atividade[5]:,.2f}")
             self.modelo.appendRow([
-                coluna_atividade
+                coluna_atividade, 
+                coluna_status, 
+                coluna_data_agendada, 
+                coluna_hora_agendada, 
+                coluna_valor
             ])
             tela.screen_all_activities.reset()
         tela.screen_all_activities.setModel(self.modelo)
+        # ocultar o índice lateral esquerdo
+        tela.screen_all_activities.verticalHeader().setSectionResizeMode(QtWidgets.QHeaderView.setSectionHidden(hide=True))
 
 # CRIAR CLASSES DE JANELAS
 class CadastroAreaScreen(QtWidgets.QWidget):
@@ -202,7 +214,8 @@ class IncluirNovaAtividadeScreen(QtWidgets.QWidget):
 
         # Tentar converter o valor para float
         try:
-            value = float(value.replace(',', '.'))
+            replace_value = value.replace(',', '.')
+            value = float(replace_value)
         except ValueError:
             self.message_label.setText("O valor deve ser um número!")
             return
@@ -256,7 +269,7 @@ class TodasAsAtividadesScreen(QtWidgets.QWidget):
         self.layout.addWidget(self.label_title)
 
         # cria uma janela de resultados
-        self.screen_all_activities = QtWidgets.QListView()
+        self.screen_all_activities = QtWidgets.QTableView()
         self.layout.addWidget(self.screen_all_activities)
 
 class EmitirRelatoriosScreen(QtWidgets.QWidget):
