@@ -145,7 +145,7 @@ class MainWindow(QtWidgets.QMainWindow):
             tela.screen_all_activities.reset()
         tela.screen_all_activities.setModel(self.modelo)
         # ocultar o índice lateral esquerdo
-        tela.screen_all_activities.verticalHeader().setSectionResizeMode(QtWidgets.QHeaderView.setSectionHidden(hide=True))
+        tela.screen_all_activities.verticalHeader().hide()
 
 # CRIAR CLASSES DE JANELAS
 class CadastroAreaScreen(QtWidgets.QWidget):
@@ -270,6 +270,10 @@ class TodasAsAtividadesScreen(QtWidgets.QWidget):
 
         # cria uma janela de resultados
         self.screen_all_activities = QtWidgets.QTableView()
+        # aplicar estilo a tabela
+        self.screen_all_activities.setStyleSheet(
+            "border: 1px solid black;"
+        )
         self.layout.addWidget(self.screen_all_activities)
 
 class EmitirRelatoriosScreen(QtWidgets.QWidget):
