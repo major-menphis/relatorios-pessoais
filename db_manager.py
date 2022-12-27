@@ -27,11 +27,15 @@ def criar_banco():
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS atividades (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user TEXT NOT NULL,
+                titulo TEXT NOT NULL,
+                usuario TEXT NOT NULL,
                 status TEXT NOT NULL,
-                date DATE NOT NULL,
-                time TIME NOT NULL,
-                value REAL,
+                data_agendada DATE NOT NULL,
+                hora_agendada TIME NOT NULL,
+                valor REAL,
+                data_hora_iniciada TIMESTAMP,
+                data_hora_terminada TIMESTAMP,
+                tempo_total TIME,
                 description TEXT NOT NULL
             )
         ''')
@@ -123,11 +127,11 @@ def adicionar_nova_atividade(atividade):
     conexao = sqlite3.connect(banco)
     cursor = conexao.cursor()
     # Converter a data e a hora para strings no formato DD-MM-YYYY e HH:MM:SS
-    date_str = atividade.date.strftime("%d/%m/%Y")
-    time_str = atividade.time.strftime("%H:%M:%S")
+    data_iniciada = atividade.date.strftime("%d/%m/%Y")
+    hora_iniciada = atividade.time.strftime("%H:%M:%S")
     # executa o adição
-    cursor.execute("INSERT INTO atividades (user, status, date, time, value, description) VALUES (?, ?, ?, ?, ?, ?)",
-              (atividade.user, atividade.status, date_str, time_str, atividade.value, atividade.description))
+    cursor.execute("INSERT INTO atividades (titulo, usuario, status, data_agendada, hora_agendada, value, description) VALUES (?, ?, ?, ?, ?, ?)",
+              (atividade.user, atividade.status, data_iniciada, hora_iniciada, atividade.value, atividade.description))
     conexao.commit()
     conexao.close()
 

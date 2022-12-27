@@ -265,8 +265,7 @@ class TodasAsAtividadesScreen(QtWidgets.QWidget):
         super().__init__()
         # criar o layout principal
         self.layout = QtWidgets.QVBoxLayout()
-        self.setLayout(self.layout)
-                
+        self.setLayout(self.layout)       
 
         # criar uma label de titulo
         self.label_title = QtWidgets.QLabel("Tela de todas as atividades")
@@ -281,6 +280,7 @@ class TodasAsAtividadesScreen(QtWidgets.QWidget):
         # altera o modo de seleção para clicar/selecionar linha
         self.screen_all_activities.setSelectionMode(QtWidgets.QTableView.SelectionMode(1))
         self.screen_all_activities.setSelectionBehavior(QtWidgets.QTableView.SelectionBehavior(1))
+
         # seleciona o header e configura para extender a ultima coluna
         self.header = self.screen_all_activities.horizontalHeader()
         self.header.setStretchLastSection(True)
@@ -303,31 +303,42 @@ class TodasAsAtividadesScreen(QtWidgets.QWidget):
         
 
     def editar_atividade(self):
-        # Obter a linha selecionada na tabela
-        selected_row = self.screen_all_activities.selectionModel().selectedRows()[0]
         
-        # Obter o índice da linha selecionada
-        row_index = selected_row.row()
+        if len(self.screen_all_activities.selectionModel().selectedRows()) > 0:
+            # Obter a linha selecionada na tabela
+            selected_row = self.screen_all_activities.selectionModel().selectedRows()[0]
+            # Obter o índice da linha selecionada
+            row_index = selected_row.row()
 
-        # Obter o modelo da tabela
-        model = self.screen_all_activities.model()
+            # Obter o modelo da tabela
+            model = self.screen_all_activities.model()
 
-        # Obter os dados da linha selecionada
-        task_id = model.data(model.index(row_index, 0))
-        atividade_status = model.data(model.index(row_index, 1))
-        atividade_value = model.data(model.index(row_index, 4))
-        atividade_description = model.data(model.index(row_index, 5))
+            # Obter os dados da linha selecionada
+            task_id = model.data(model.index(row_index, 0))
+            atividade_status = model.data(model.index(row_index, 1))
+            atividade_value = model.data(model.index(row_index, 4))
+            atividade_description = model.data(model.index(row_index, 5))
 
-        # Mostrar uma caixa de diálogo para editar os dados da tarefa
-        atividade_status, ok = QtWidgets.QInputDialog.getItem(self, "Editar atividade", "Status da atividade:", ["Pendente", "Concluída"], current=0, editable=False)
-        atividade_value, ok = QtWidgets.QInputDialog.getText(self, "Editar atividade", "Valor da atividade:", text=atividade_value)
-        atividade_description, ok = QtWidgets.QInputDialog.getText(self, "Editar atividade", "Descrição da atividade:", text=atividade_description)
+            # Mostrar uma caixa de diálogo para editar os dados da tarefa
+            atividade_status, ok = QtWidgets.QInputDialog.getItem(self, "Editar atividade", "Status da atividade:", ["Pendente", "Concluída"], current=0, editable=False)
+            atividade_value, ok = QtWidgets.QInputDialog.getText(self, "Editar atividade", "Valor da atividade:", text=atividade_value)
+            atividade_description, ok = QtWidgets.QInputDialog.getText(self, "Editar atividade", "Descrição da atividade:", text=atividade_description)
 
-        # Atualizar os dados da tarefa no banco de dados
-        
+            # Atualizar os dados da tarefa no banco de dados
+            
 
-        # Atualizar a tabela com os dados atualizados
-        MainWindow.atualiza_todas_atividades
+            # Atualizar a tabela com os dados atualizados
+            MainWindow.atualiza_todas_atividades
+        else:
+            self.mensagem('Atenção', 'Selecione a atividade na lista e clique em "Editar atividade".')
+
+    def mensagem(self, title, msg):
+        message_box = QtWidgets.QMessageBox(parent=self)
+        message_box.setWindowTitle(title)
+        message_box.setText(msg)
+        message_box.setIcon(QtWidgets.QMessageBox.Icon.Information)
+        message_box.setStandardButtons(QtWidgets.QMessageBox.StandardButton.Ok)
+        ret = message_box.exec()
 
 class EmitirRelatoriosScreen(QtWidgets.QWidget):
     def __init__(self):
