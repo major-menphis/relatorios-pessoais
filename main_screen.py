@@ -1,6 +1,7 @@
 import sys
 from PyQt6 import QtWidgets, QtCore, QtGui
 import db_manager
+from PyQt6.QtWidgets import QAbstractItemView
 
 #criar banco ao abrir a aplicação
 db_manager.criar_banco()
@@ -8,7 +9,7 @@ db_manager.criar_banco()
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self):
         super().__init__()
-        self.resize(1080, 568)
+        self.resize(1000, 568)
 
         # Criar o menu lateral retrátil
         self.sidebar = QtWidgets.QDockWidget()
@@ -128,19 +129,21 @@ class MainWindow(QtWidgets.QMainWindow):
         self.all_activities = db_manager.consultar_atividades()
         self.modelo = QtGui.QStandardItemModel()
         # nomear colunas
-        self.modelo.setHorizontalHeaderLabels(["Nome", "Status", "Data Agendada", "Hora agendada", "Valor"])
+        self.modelo.setHorizontalHeaderLabels(["Nome", "Status", "Data Iniciada", "Hora Iniciada", "Valor", "Descrição"])
         for atividade in self.all_activities:
             coluna_atividade = QtGui.QStandardItem(atividade[1])
             coluna_status = QtGui.QStandardItem(atividade[2])
             coluna_data_agendada = QtGui.QStandardItem(atividade[3])
             coluna_hora_agendada = QtGui.QStandardItem(atividade[4])
             coluna_valor = QtGui.QStandardItem(f"R$ {atividade[5]:,.2f}")
+            coluna_descricao = QtGui.QStandardItem(atividade[6])
             self.modelo.appendRow([
                 coluna_atividade, 
                 coluna_status, 
                 coluna_data_agendada, 
                 coluna_hora_agendada, 
-                coluna_valor
+                coluna_valor,
+                coluna_descricao
             ])
             tela.screen_all_activities.reset()
         tela.screen_all_activities.setModel(self.modelo)
@@ -180,8 +183,8 @@ class IncluirNovaAtividadeScreen(QtWidgets.QWidget):
         # Adicionar campos de entrada ao formulário
         self.form_layout.addRow("Usuário:", self.user_input)
         self.form_layout.addRow("Status:", self.status_input)
-        self.form_layout.addRow("Data agendada:", self.date_input)
-        self.form_layout.addRow("Hora agendada:", self.time_input)
+        self.form_layout.addRow("Data Iniciada:", self.date_input)
+        self.form_layout.addRow("Hora Iniciada:", self.time_input)
         self.form_layout.addRow("Valor estimado:", self.value_input)
         self.form_layout.addRow("Descrição:", self.description_input)
 
@@ -263,6 +266,7 @@ class TodasAsAtividadesScreen(QtWidgets.QWidget):
         # criar o layout principal
         self.layout = QtWidgets.QVBoxLayout()
         self.setLayout(self.layout)
+                
 
         # criar uma label de titulo
         self.label_title = QtWidgets.QLabel("Tela de todas as atividades")
@@ -274,7 +278,56 @@ class TodasAsAtividadesScreen(QtWidgets.QWidget):
         self.screen_all_activities.setStyleSheet(
             "border: 1px solid black;"
         )
+        # altera o modo de seleção para clicar/selecionar linha
+        self.screen_all_activities.setSelectionMode(QtWidgets.QTableView.SelectionMode(1))
+        self.screen_all_activities.setSelectionBehavior(QtWidgets.QTableView.SelectionBehavior(1))
+        # seleciona o header e configura para extender a ultima coluna
+        self.header = self.screen_all_activities.horizontalHeader()
+        self.header.setStretchLastSection(True)
         self.layout.addWidget(self.screen_all_activities)
+
+        #criar botoes
+        self.new_button = QtWidgets.QPushButton('Nova atividade')
+        self.edit_button = QtWidgets.QPushButton('Editar atividade')
+        self.delete_button = QtWidgets.QPushButton('Apagar atividade')
+        
+        #conectar funções
+        #self.new_button.clicked.connect(self.nova_atividade)
+        self.edit_button.clicked.connect(self.editar_atividade)
+        #self.delete_button.clicked.connect(self.apagar_atividade)
+
+        #adiciona botoes
+        self.layout.addWidget(self.new_button)
+        self.layout.addWidget(self.edit_button)
+        self.layout.addWidget(self.delete_button)
+        
+
+    def editar_atividade(self):
+        # Obter a linha selecionada na tabela
+        selected_row = self.screen_all_activities.selectionModel().selectedRows()[0]
+        
+        # Obter o índice da linha selecionada
+        row_index = selected_row.row()
+
+        # Obter o modelo da tabela
+        model = self.screen_all_activities.model()
+
+        # Obter os dados da linha selecionada
+        task_id = model.data(model.index(row_index, 0))
+        atividade_status = model.data(model.index(row_index, 1))
+        atividade_value = model.data(model.index(row_index, 4))
+        atividade_description = model.data(model.index(row_index, 5))
+
+        # Mostrar uma caixa de diálogo para editar os dados da tarefa
+        atividade_status, ok = QtWidgets.QInputDialog.getItem(self, "Editar atividade", "Status da atividade:", ["Pendente", "Concluída"], current=0, editable=False)
+        atividade_value, ok = QtWidgets.QInputDialog.getText(self, "Editar atividade", "Valor da atividade:", text=atividade_value)
+        atividade_description, ok = QtWidgets.QInputDialog.getText(self, "Editar atividade", "Descrição da atividade:", text=atividade_description)
+
+        # Atualizar os dados da tarefa no banco de dados
+        
+
+        # Atualizar a tabela com os dados atualizados
+        MainWindow.atualiza_todas_atividades
 
 class EmitirRelatoriosScreen(QtWidgets.QWidget):
     def __init__(self):

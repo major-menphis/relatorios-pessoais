@@ -71,7 +71,6 @@ def validar_usuario(usuario, senha):
     else:
         print(f'Usuário e senha inválidos.')
     conexao.close()
-    
 
 #Inserção de dados de usuários
 def inserir_usuario(usuario, senha):
@@ -142,6 +141,23 @@ def consultar_atividades():
     conexao.commit()
     conexao.close()
     return atividades
+
+def editar_atividade(atividade):
+    conexao = sqlite3.connect(banco)
+    cursor = conexao.cursor()
+    # Converter a data e a hora para strings no formato DD-MM-YYYY e HH:MM:SS
+    date_str = atividade.date.strftime("%d/%m/%Y")
+    time_str = atividade.time.strftime("%H:%M:%S")
+    cursor.execute("""
+    UPDATE atividades SET user = ?, 
+    status = ?, 
+    date = ?, 
+    time = ?, 
+    value = ?, 
+    description = ? WHERE id = ?
+    """, (atividade.user, atividade.status, date_str, time_str, atividade.value, atividade.description))
+    conexao.commit()
+    conexao.close()
 
 def adicionar_area_atividade(area):
     #obter data e hora atual
