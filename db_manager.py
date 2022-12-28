@@ -35,8 +35,8 @@ def criar_banco():
                 valor REAL,
                 data_hora_iniciada TIMESTAMP,
                 data_hora_terminada TIMESTAMP,
-                tempo_total TIME,
-                description TEXT NOT NULL
+                tempo_total TIMESTAMP,
+                descricao TEXT NOT NULL
             )
         ''')
 
@@ -45,7 +45,7 @@ def criar_banco():
             CREATE TABLE IF NOT EXISTS areas (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 area TEXT NOT NULL,
-                description TEXT NOT NULL,
+                descricao TEXT NOT NULL,
                 criada_em TIMESTAMP
             )
         ''')
@@ -127,11 +127,17 @@ def adicionar_nova_atividade(atividade):
     conexao = sqlite3.connect(banco)
     cursor = conexao.cursor()
     # Converter a data e a hora para strings no formato DD-MM-YYYY e HH:MM:SS
-    data_iniciada = atividade.date.strftime("%d/%m/%Y")
-    hora_iniciada = atividade.time.strftime("%H:%M:%S")
+    data_agendada = atividade.data_agendada.strftime("%d/%m/%Y")
+    hora_agendada = atividade.hora_agendada.strftime("%H:%M:%S")
+    data_hora_iniciada = atividade.data_hora_iniciada.strftime("%d/%m/%Y %H:%M:%S")
+    data_hora_terminada = atividade.data_hora_terminada.strftime("%d/%m/%Y %H:%M:%S")
+    tempo_total = atividade.tempo_total.strftime("%d/%m/%Y %H:%M:%S")
     # executa o adição
-    cursor.execute("INSERT INTO atividades (titulo, usuario, status, data_agendada, hora_agendada, value, description) VALUES (?, ?, ?, ?, ?, ?)",
-              (atividade.user, atividade.status, data_iniciada, hora_iniciada, atividade.value, atividade.description))
+    cursor.execute("""INSERT INTO atividades 
+    (titulo, usuario, status, data_agendada, hora_agendada, valor, data_hora_iniciada, data_hora_terminada, tempo_total, descricao) 
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""", 
+    (atividade.titulo, atividade.usuario, atividade.status, data_agendada, hora_agendada, atividade.valor, data_hora_iniciada, data_hora_terminada, 
+    tempo_total, atividade.descricao))
     conexao.commit()
     conexao.close()
 
@@ -146,20 +152,40 @@ def consultar_atividades():
     conexao.close()
     return atividades
 
+def consultar_atividades_titulo_usuario(titulo, status):
+    conexao = sqlite3.connect(banco)
+    cursor = conexao.cursor()
+    cursor.execute("""
+    SELECT * FROM atividades
+    WHERE titulo = ? AND
+    status = ?
+    """, (titulo, status))
+    atividade = cursor.fetchone()
+    conexao.close()
+    return atividade
+
 def editar_atividade(atividade):
     conexao = sqlite3.connect(banco)
     cursor = conexao.cursor()
     # Converter a data e a hora para strings no formato DD-MM-YYYY e HH:MM:SS
-    date_str = atividade.date.strftime("%d/%m/%Y")
-    time_str = atividade.time.strftime("%H:%M:%S")
+    data_agendada = atividade.data_agendada.strftime("%d/%m/%Y")
+    hora_agendada = atividade.hora_agendada.strftime("%H:%M:%S")
+    data_hora_iniciada = atividade.data_hora_iniciada.strftime("%d/%m/%Y %H:%M:%S")
+    data_hora_terminada = atividade.data_hora_terminada.strftime("%d/%m/%Y %H:%M:%S")
+    tempo_total = atividade.tempo_total.strftime("%d/%m/%Y %H:%M:%S")
     cursor.execute("""
-    UPDATE atividades SET user = ?, 
+    UPDATE atividades SET 
+    usuario = ?, 
     status = ?, 
-    date = ?, 
-    time = ?, 
-    value = ?, 
-    description = ? WHERE id = ?
-    """, (atividade.user, atividade.status, date_str, time_str, atividade.value, atividade.description))
+    data_agendada = ?, 
+    hora_agendada = ?, 
+    valor = ?, 
+    data_hora_iniciada = ?, 
+    data_hora_termianda = ?, 
+    tempo_total = ?,  
+    descricao = ? WHERE id = ?
+    """, (atividade.usuario, atividade.status, data_agendada, hora_agendada, atividade.valor, data_hora_iniciada, data_hora_terminada, 
+    tempo_total, atividade.descricao))
     conexao.commit()
     conexao.close()
 
@@ -170,8 +196,8 @@ def adicionar_area_atividade(area):
     data_criacao = data_atual.strftime('%d-%m-%Y %H:%M:%S')
     conexao = sqlite3.connect(banco)
     cursor = conexao.cursor()
-    cursor.execute("INSERT INTO areas (area, description, criada_em) VALUES (?, ?, ?)",
-              (area.area, area.description, data_criacao))
+    cursor.execute("INSERT INTO areas (area, descricao, criada_em) VALUES (?, ?, ?)",
+              (area.area, area.descricao, data_criacao))
     conexao.commit()
     conexao.close()
 
