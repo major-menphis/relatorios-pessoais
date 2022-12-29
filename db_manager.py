@@ -167,33 +167,30 @@ def consultar_atividades_titulo_usuario(titulo, status):
 def editar_atividade(atividade):
     conexao = sqlite3.connect(banco)
     cursor = conexao.cursor()
-    # Converter a data e a hora para strings no formato DD-MM-YYYY e HH:MM:SS
-    data_agendada = atividade.data_agendada.strftime("%d/%m/%Y")
-    hora_agendada = atividade.hora_agendada.strftime("%H:%M:%S")
-    data_hora_iniciada = atividade.data_hora_iniciada.strftime("%d/%m/%Y %H:%M:%S")
-    data_hora_terminada = atividade.data_hora_terminada.strftime("%d/%m/%Y %H:%M:%S")
-    tempo_total = atividade.tempo_total.strftime("%d/%m/%Y %H:%M:%S")
     cursor.execute("""
     UPDATE atividades SET 
+    titulo = ?, 
     usuario = ?, 
     status = ?, 
     data_agendada = ?, 
     hora_agendada = ?, 
     valor = ?, 
     data_hora_iniciada = ?, 
-    data_hora_termianda = ?, 
+    data_hora_terminada = ?, 
     tempo_total = ?,  
     descricao = ? WHERE id = ?
-    """, (atividade.usuario, atividade.status, data_agendada, hora_agendada, atividade.valor, data_hora_iniciada, data_hora_terminada, 
-    tempo_total, atividade.descricao))
+    """, (atividade.titulo, atividade.usuario, atividade.status, atividade.data_agendada, 
+    atividade.hora_agendada, atividade.valor, atividade.data_hora_iniciada, 
+    atividade.data_hora_terminada, atividade.tempo_total, atividade.descricao, atividade.id))
     conexao.commit()
     conexao.close()
+    return 'Atividade atualizada com sucesso.'
 
 def adicionar_area_atividade(area):
     #obter data e hora atual
     data_atual = datetime.now()
     #formatar a data atual para 'DD-MM-YYYY HH:MM:SS'
-    data_criacao = data_atual.strftime('%d-%m-%Y %H:%M:%S')
+    data_criacao = data_atual.strftime('%d/%m/%Y %H:%M:%S')
     conexao = sqlite3.connect(banco)
     cursor = conexao.cursor()
     cursor.execute("INSERT INTO areas (area, descricao, criada_em) VALUES (?, ?, ?)",

@@ -12,13 +12,13 @@ class MainWindow(QtWidgets.QMainWindow):
         super().__init__()
         self.resize(1080, 568)
 
-        # Criar o menu lateral retrátil
+        # Criar o menu lateral esquerdo
         self.sidebar = QtWidgets.QDockWidget()
         self.sidebar.setFeatures(QtWidgets.QDockWidget.DockWidgetFeature.NoDockWidgetFeatures)
         self.sidebar.setWindowTitle('Menu')
         self.addDockWidget(QtCore.Qt.DockWidgetArea.LeftDockWidgetArea, self.sidebar)
 
-        # Criar o conteúdo do menu lateral
+        # Criar o conteúdo do menu lateral esquerdo
         self.sidebar_content = QtWidgets.QListWidget()
         self.sidebar_content.addItems([
             "Cadastro de áreas de atividade",
@@ -134,31 +134,25 @@ class MainWindow(QtWidgets.QMainWindow):
         "Iniciada em", "Terminada em"])
         for atividade in self.all_activities:
             coluna_titulo = QtGui.QStandardItem(atividade[1])
-            #coluna_usuario = QtGui.QStandardItem(atividade[2])
             coluna_status = QtGui.QStandardItem(atividade[3])
             coluna_data_agendada = QtGui.QStandardItem(atividade[4])
             coluna_hora_agendada = QtGui.QStandardItem(atividade[5])
             coluna_valor = QtGui.QStandardItem(f"R$ {atividade[6]:,.2f}")
             coluna_data_hora_iniciada = QtGui.QStandardItem(atividade[7])
             coluna_data_hora_terminada = QtGui.QStandardItem(atividade[8])
-            #coluna_tempo_total = QtGui.QStandardItem(atividade[9])
-            #coluna_descricao = QtGui.QStandardItem(atividade[10])
             self.modelo.appendRow([
                 coluna_titulo, 
-                #coluna_usuario, 
                 coluna_status, 
                 coluna_data_agendada, 
                 coluna_hora_agendada, 
                 coluna_valor,
                 coluna_data_hora_iniciada, 
-                coluna_data_hora_terminada 
-                #coluna_tempo_total, 
-                #coluna_descricao
+                coluna_data_hora_terminada
             ])
             tela.screen_all_activities.reset()
         tela.screen_all_activities.setModel(self.modelo)
         # ocultar o índice lateral esquerdo
-        tela.screen_all_activities.verticalHeader()#.hide()
+        tela.screen_all_activities.verticalHeader().hide()
 
 # CRIAR CLASSES DE JANELAS
 class CadastroAreaScreen(QtWidgets.QWidget):
@@ -309,9 +303,7 @@ class TodasAsAtividadesScreen(QtWidgets.QWidget):
 
         # seleciona o header e configura para extender a ultima coluna
         self.header = self.screen_all_activities.horizontalHeader()
-        #self.header.setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode(3)) #opção ResizeToContents
         self.header.setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode(1)) #opção Stretch
-        #self.header.setStretchLastSection(True) #opção extender ultima coluna
         self.layout.addWidget(self.screen_all_activities)
 
         #criar botoes
@@ -330,8 +322,7 @@ class TodasAsAtividadesScreen(QtWidgets.QWidget):
         self.layout.addWidget(self.delete_button)
         
 
-    def editar_atividade(self):
-        
+    def editar_atividade(self):   
         if len(self.screen_all_activities.selectionModel().selectedRows()) > 0:
             # Obter a linha selecionada na tabela
             selected_row = self.screen_all_activities.selectionModel().selectedRows()[0]
@@ -342,50 +333,28 @@ class TodasAsAtividadesScreen(QtWidgets.QWidget):
             model = self.screen_all_activities.model()
 
             # Obter os dados da linha selecionada no banco de dados
-            atividade_loc_titulo = model.data(model.index(row_index, 0))
-            atividade_loc_status = model.data(model.index(row_index, 1))
-            atividade = db_manager.consultar_atividades_titulo_usuario(atividade_loc_titulo, atividade_loc_status)
-            atividade_id = atividade[0]
-            atividade_titulo = atividade[1]
-            atividade_usuario = atividade[2]
-            atividade_status = atividade[3]
-            atividade_data_agendada = atividade[4]
-            atividade_hora_agendada = atividade[5]
-            atividade_valor = atividade[6]
-            atividade_data_hora_iniciada = atividade[7]
-            atividade_data_hora_terminada = atividade[8]
-            atividade_tempo_total = atividade[9]
-            atividade_descricao = atividade[10]
+            try:
+                atividade_loc_titulo = model.data(model.index(row_index, 0))
+                atividade_loc_status = model.data(model.index(row_index, 1))
+                atividade = db_manager.consultar_atividades_titulo_usuario(atividade_loc_titulo, atividade_loc_status)
+                atividade_id = atividade[0]
+                atividade_titulo = atividade[1] #na tabela
+                atividade_usuario = atividade[2]
+                atividade_status = atividade[3] #na tabela
+                atividade_data_agendada = atividade[4] #na tabela
+                atividade_hora_agendada = atividade[5] #na tabela
+                atividade_valor = atividade[6] #na tabela
+                atividade_data_hora_iniciada = atividade[7] #na tabela
+                atividade_data_hora_terminada = atividade[8] #na tabela
+                atividade_tempo_total = atividade[9]
+                atividade_descricao = atividade[10]
+            except:
+                self.mensagem('Atenção', 'Selecione a atividade na lista e clique em "Editar atividade".')
+                return
 
             # Mostrar uma caixa de diálogo para editar os dados da tarefa
             atividade_titulo, ok = QtWidgets.QInputDialog.getText(self, "Editar atividade", "Título da atividade:", text=atividade_titulo)
-            atividade_status, ok = QtWidgets.QInputDialog.getItem(self, "Editar atividade", "Status da atividade:", ["Agendada", "Iniciada", "Interrompida", "Concluída"], current=0, editable=False)
-            if atividade_status != "Agendada":
-                data_hora_atual = datetime.now()
-                
-                if atividade_status == "Iniciada":
-                    if atividade_data_hora_iniciada == '01/01/0001 00:00:00':
-                        atividade_data_hora_iniciada = datetime.now()
-                    else:
-                        self.mensagem('Atenção', 'Atividade já iniciada')
-                elif atividade_status == "interrompida":
-                    if atividade_data_hora_iniciada != '01/01/0001 00:00:00':
-                        diferenca = atividade_data_hora_iniciada - data_hora_atual
-                        time_objeto = datetime.strptime(diferenca, "%d/%m/%Y %H:%M:%S")
-                        tempo_total_atual = datetime.strptime(atividade_tempo_total, "%d/%m/%Y %H:%M:%S")
-                        resultado = tempo_total_atual + time_objeto
-                        atividade_tempo_total = resultado
-                        atividade_data_hora_iniciada = resultado    
-                    else:
-                        self.mensagem('Atenção', 'Somente selecione "Interrompida" caso a atividade ja esteja iniciada.')
-                elif atividade_status == "Concluída":
-                    if atividade_data_hora_iniciada != '01/01/0001 00:00:00':
-                        atividade_data_hora_terminada = datetime.now()
-                        resultado_termino = atividade_data_hora_terminada - atividade_data_hora_iniciada
-                        atividade_tempo_total += resultado_termino
-                    else:
-                        self.mensagem('Atenção', 'Atividade não foi iniciada')
- 
+            atividade_status, ok = QtWidgets.QInputDialog.getItem(self, "Editar atividade", "Status da atividade:", ["Agendada", "Iniciada", "Concluída"], current=0, editable=False)
             atividade_data_agendada, ok = QtWidgets.QInputDialog.getText(self, "Editar atividade", "Data agendada da atividade:", text=atividade_data_agendada)
             atividade_hora_agendada, ok = QtWidgets.QInputDialog.getText(self, "Editar atividade", "Hora agendada da atividade:", text=atividade_hora_agendada)
             atividade_valor, ok = QtWidgets.QInputDialog.getText(self, "Editar atividade", "Valor da atividade:", text=str(atividade_valor))
@@ -396,19 +365,32 @@ class TodasAsAtividadesScreen(QtWidgets.QWidget):
                 return
             atividade_descricao, ok = QtWidgets.QInputDialog.getText(self, "Editar atividade", "Descrição da atividade:", text=atividade_descricao)
 
-            # Atualizar os dados da tarefa no banco de dados
-            atividade_editada = Atividade(atividade_titulo, atividade_usuario, atividade_status, atividade_data_agendada, atividade_hora_agendada, atividade_valor, 
-            atividade_data_hora_iniciada, atividade_data_hora_terminada, atividade_tempo_total, atividade_descricao)
-            #try:
-            db_manager.editar_atividade(atividade_editada)
-            #except Exception as e:
-                #self.mensagem('Erro ao adicionar atividade', f'erro: {str(e)}')
-                #return
+            # atualiza a data e hora da atividade iniciada
+            if atividade_status == 'Iniciada' and atividade_data_hora_iniciada == '01/01/0001 00:00:00':
+                atividade_data_hora_iniciada = datetime.now().strftime('%d/%m/%Y %H:%M:%S')
 
-            # Atualizar a tabela com os dados atualizados
-            MainWindow.atualiza_todas_atividades
+            # atualiza a data e hora da atividade concluida
+            if atividade_status == 'Concluída' and atividade_data_hora_iniciada != '01/01/0001 00:00:00':
+                atividade_data_hora_terminada = datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+            
+            # atualiza o tempo total da atividade
+            dh_terminada = datetime.strptime(atividade_data_hora_terminada, '%d/%m/%Y %H:%M:%S')
+            dh_iniciada = datetime.strptime(atividade_data_hora_iniciada, '%d/%m/%Y %H:%M:%S')
+            resultado = dh_terminada - dh_iniciada
+            atividade_tempo_total = str(resultado)
+
+            # Atualizar os dados da tarefa no banco de dados
+            atividade_editada = Atividade_Editar(atividade_titulo, atividade_usuario, atividade_status, atividade_data_agendada, atividade_hora_agendada, atividade_valor, 
+            atividade_data_hora_iniciada, atividade_data_hora_terminada, atividade_tempo_total, atividade_descricao, atividade_id)
+            try:
+                msg = db_manager.editar_atividade(atividade_editada)
+                self.mensagem('Mensagem do sistema', f'{msg}')
+            except Exception as e:
+                self.mensagem('Erro ao adicionar atividade', f'erro: {str(e)}')
+                return
         else:
             self.mensagem('Atenção', 'Selecione a atividade na lista e clique em "Editar atividade".')
+
 
     def mensagem(self, title, msg):
         message_box = QtWidgets.QMessageBox(parent=self)
@@ -434,7 +416,22 @@ class GraficosDeAtividadesScreen(QtWidgets.QWidget):
         self.label = QtWidgets.QLabel("Tela de gráficos de atividades")
         self.layout.addWidget(self.label)
 
-# criar classe 'Atividade'
+# criar classe 'Atividade Editar'
+class Atividade_Editar:
+    def __init__(self, titulo, usuario, status, data_agendada, hora_agendada, valor, 
+    data_hora_iniciada, data_hora_terminada, tempo_total, descricao, id):
+        self.titulo = titulo
+        self.usuario = usuario
+        self.status = status
+        self.data_agendada = data_agendada
+        self.hora_agendada = hora_agendada
+        self.valor = valor
+        self.data_hora_iniciada = data_hora_iniciada
+        self.data_hora_terminada = data_hora_terminada
+        self.tempo_total = tempo_total
+        self.descricao = descricao
+        self.id = id
+
 class Atividade:
     def __init__(self, titulo, usuario, status, data_agendada, hora_agendada, valor, 
     data_hora_iniciada, data_hora_terminada, tempo_total, descricao):
